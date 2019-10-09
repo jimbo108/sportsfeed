@@ -15,7 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from login import views as login_views
+from home import views as home_views
 
 urlpatterns = [
+    url(r'^login/new/submit/', login_views.new_user_submit),
+    url(r'^login/new/', login_views.new_user),
+    url(r'^home/', home_views.home),
+    url(r'^login/submit/', login_views.submit),
+    url(r'^login/', login_views.login),
     url(r'^admin/', admin.site.urls),
 ]

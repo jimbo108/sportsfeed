@@ -1,0 +1,18 @@
+<html>
+    <title>Login</title>
+    <br/>
+    <br/>
+    <form action='/login/new/submit/' method="POST">
+        {% csrf_token %}
+        <input id="new_user_name_field" name="name" placeholder="Name"/>
+        <br/>
+        <br/>
+        <input id="new_user_email_field" name="email" placeholder="Login"/>
+        <br/>
+        <br/>
+        <input id="new_user_password_field" name="password" placeholder="Password"/>
+        <br/>
+        <br/>
+        <input id="new_user_submit_button" type="submit" value="Submit"/>
+    </form>
+</html>

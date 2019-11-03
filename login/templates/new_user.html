@@ -5,57 +5,61 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Login</title> 
-        <link rel="stylesheet" type="text/css" href="{% static 'login/style.css' %}"/>
         <link rel="stylesheet" href="{% static 'login/bootstrap/css/bootstrap.min.css'%}"> 
+        <link rel="stylesheet" type="text/css" href="{% static 'login/style.css' %}"/>
     </head>
-    <body>
+    <body class="grey-background">
         <br/>
         <br/>
         <div class="container">
             <div class="row">
                 <div class="col-md-6 offset-3 jumbotron text-center">
-                    <h1>Create Your Foo Account</h1>
+                    <h1 class="display-4">Create Your SportsFeed Account</h1>
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-6 offset-3 text-center">
+                <div class="col-md-4 offset-4 text-center form-div rounded"> 
                     <form action='/login/new/submit/' method="POST">
                         {% csrf_token %}
+                        <br/>
+                        <br/>
                         {% if invalid_name or missing_name %} 
-                        <input id="new_user_name_field" name="name" placeholder="Name" class="invalid-or-missing"/>
-                        {% else %}
-                        <input id="new_user_name_field" name="name" placeholder="Name"/> 
-                        {% endif %}
+                        <input id="new_user_name_field" name="name" placeholder="Name" class="form-control invalid-or-missing"/>
                         {% if invalid_name %}
                         <p>Please enter a name using only alphanumeric characters.</p>
                         {% endif %}
                         {% if missing_name %}
                         <p>Please enter a name.</p>
                         {% endif %}
+                        {% else %}
+                        <input id="new_user_name_field" name="name" placeholder="Name" class="form-control"/> 
                         <br/>
-                        <br/>
+                        {% endif %}
+
                         {% if invalid_email or missing_email %}
-                        <input id="new_user_email_field" name="email" placeholder="Login" class="invalid-or-missing"/>
+                        <input id="new_user_email_field" name="email" placeholder="Login" class="form-control invalid-or-missing"/>
                         <p>Please enter a valid email address.</p>
                         {% else %}
-                        <input id="new_user_email_field" name="email" placeholder="Login"/>
+                        <input id="new_user_email_field" name="email" placeholder="Login" class="form-control"/>
+                        <br/>
                         {% endif %}
-                        <br/>
-                        <br/>
+
                         {% if missing_password or overshort_password %}
-                        <input id="new_user_password_field" name="password" placeholder="Password" class="invalid-or-missing"/>
-                        {% else %}
-                        <input id="new_user_password_field" name="password" placeholder="Password"/> 
-                        {% endif %}
+                        <input id="new_user_password_field" name="password" placeholder="Password" class="form-control invalid-or-missing"/>
                         {% if overshort_password %}
                         <p>Please enter a password that is at least 8 characters long.</p>
                         {% endif %}
                         {% if missing_password %}
                         <p>Please enter a password.</p>
+                        {% endif %} 
+                        {% else %}
+                        <input id="new_user_password_field" name="password" placeholder="Password" class="form-control"/> 
+                        <br/>
                         {% endif %}
-                        <br/>
-                        <br/>
-                        <input id="new_user_submit_button" type="submit" value="Submit"/>
+                       <br/>
+                        <button class="btn btn-lg btn-primary btn-block purple-button" id="new_user_submit_button" type="submit">
+                            Create Account
+                        </button> 
                     </form>
  
                 </div>

@@ -11,3 +11,4 @@ class User(models.Model):
     def create_user(self, email, plain_text_password, name):
         hashed_password = make_password(plain_text_password)
         User.objects.create(email=email, hashed_password=hashed_password, name=name)
+    

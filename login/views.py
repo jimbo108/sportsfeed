@@ -41,6 +41,7 @@ def new_user_submit(request):
     email = request.POST.get('email')
     password = request.POST.get('password')
     new_user_validator = NewUserValidator(name, email, password)
+    invalid_field = False 
 
     if new_user_validator.missing_fields:
         if new_user_validator.missing_email:
@@ -52,20 +53,23 @@ def new_user_submit(request):
         
         return new_user_submission_failure(request, context)
     
-    elif new_user_validator.invalid_name:
+    if new_user_validator.invalid_name:
         context[NewUserSubmissionErrors.INVALID_NAME.value] = True
-        return new_user_submission_failure(request, context)
+        invalid_field = True
 
-    elif new_user_validator.invalid_email:
+    if new_user_validator.invalid_email:
         context[NewUserSubmissionErrors.INVALID_EMAIL.value] = True
-        return new_user_submission_failure(request, context)
+        invalid_field = True
     
-    elif new_user_validator.overshort_password:
+    if new_user_validator.overshort_password:
         context[NewUserSubmissionErrors.OVERSHORT_PASSWORD.value] = True
-        return new_user_submission_failure(request, context)
+        invalid_field = True
     
-    elif new_user_validator.duplicate_email:
+    if new_user_validator.duplicate_email:
         context[NewUserSubmissionErrors.DUPLICATE_EMAIL.value] = True
+        invalid_field = True
+
+    if invalid_field:
         return new_user_submission_failure(request, context)
 
     else:

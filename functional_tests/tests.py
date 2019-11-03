@@ -136,7 +136,49 @@ class NewVisitorLoginTest(LiveServerTestCase):
         self.assertEqual(self.browser.current_url, self.live_server_url + '/home/')
 
     def test_new_user_create_credentials_and_login_missing_fields_highlight_and_message(self):
-        pass
+        blank_name = ""
+        email = "test@testhost.com"
+        password = "password"
+
+        self.browser.get(self.live_server_url + '/login/')
+        time.sleep(1)
+
+        new_user_link = self.browser.find_element_by_id('new_user_link')
+        self.assertIsNotNone(new_user_link)
+
+        new_user_link.click()
+        time.sleep(1)
+
+        self.assertEqual(self.browser.current_url, self.live_server_url + '/login/new/')
+
+        name_input = self.browser.find_element_by_id('new_user_name_field')
+        self.assertIsNotNone(name_input)
+
+        name_input.send_keys(blank_name)
+        time.sleep(1)
+
+        email_input = self.browser.find_element_by_id('new_user_email_field')
+        self.assertIsNotNone(email_input)
+
+        email_input.send_keys(email)
+        time.sleep(1)
+
+        password_input = self.browser.find_element_by_id('new_user_password_field')
+        self.assertIsNotNone(password_input)
+
+        password_input.send_keys(password)
+        time.sleep(1)
+
+        new_user_submit_button = self.browser.find_element_by_id('new_user_submit_button')
+        self.assertIsNotNone(new_user_submit_button)
+
+        new_user_submit_button.click()
+        time.sleep(1)
+
+        name_input = self.browser.find_element_by_id('new_user_name_field')
+        name_input_class = name_input.get_attribute("class")
+
+        self.assertEqual(name_input_class, "invalid-or-missing")        
 
     def test_new_user_create_credentials_and_login_invalid_email_highlight_and_message(self):
         pass

@@ -1,18 +1,66 @@
 <html>
-    <title>Login</title>
-    <br/>
-    <br/>
-    <form action='/login/new/submit/' method="POST">
-        {% csrf_token %}
-        <input id="new_user_name_field" name="name" placeholder="Name"/>
+    <head>
+        {% load static %}
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Login</title> 
+        <link rel="stylesheet" type="text/css" href="{% static 'login/style.css' %}"/>
+        <link rel="stylesheet" href="{% static 'login/bootstrap/css/bootstrap.min.css'%}"> 
+    </head>
+    <body>
         <br/>
         <br/>
-        <input id="new_user_email_field" name="email" placeholder="Login"/>
-        <br/>
-        <br/>
-        <input id="new_user_password_field" name="password" placeholder="Password"/>
-        <br/>
-        <br/>
-        <input id="new_user_submit_button" type="submit" value="Submit"/>
-    </form>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 offset-3 jumbotron text-center">
+                    <h1>Create Your Foo Account</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 offset-3 text-center">
+                    <form action='/login/new/submit/' method="POST">
+                        {% csrf_token %}
+                        {% if invalid_name or missing_name %} 
+                        <input id="new_user_name_field" name="name" placeholder="Name" class="invalid-or-missing"/>
+                        {% else %}
+                        <input id="new_user_name_field" name="name" placeholder="Name"/> 
+                        {% endif %}
+                        {% if invalid_name %}
+                        <p>Please enter a name using only alphanumeric characters.</p>
+                        {% endif %}
+                        {% if missing_name %}
+                        <p>Please enter a name.</p>
+                        {% endif %}
+                        <br/>
+                        <br/>
+                        {% if invalid_email or missing_email %}
+                        <input id="new_user_email_field" name="email" placeholder="Login" class="invalid-or-missing"/>
+                        <p>Please enter a valid email address.</p>
+                        {% else %}
+                        <input id="new_user_email_field" name="email" placeholder="Login"/>
+                        {% endif %}
+                        <br/>
+                        <br/>
+                        {% if missing_password or overshort_password %}
+                        <input id="new_user_password_field" name="password" placeholder="Password" class="invalid-or-missing"/>
+                        {% else %}
+                        <input id="new_user_password_field" name="password" placeholder="Password"/> 
+                        {% endif %}
+                        {% if overshort_password %}
+                        <p>Please enter a password that is at least 8 characters long.</p>
+                        {% endif %}
+                        {% if missing_password %}
+                        <p>Please enter a password.</p>
+                        {% endif %}
+                        <br/>
+                        <br/>
+                        <input id="new_user_submit_button" type="submit" value="Submit"/>
+                    </form>
+ 
+                </div>
+
+            </div>
+        </div>
+   </body>
 </html>

@@ -1,0 +1,28 @@
+.invalid-or-missing {
+    background-color: pink;
+}
+
+.jumbotron {
+    background-color: whitesmoke;
+    border-style: solid;
+    border-color: #b19cd9;
+    /*border-block-width: 30px;*/
+}
+
+.grey-background {
+    background-color: #e3e3e3;
+}
+
+.purple-button {
+    background-color: #b19cd9;
+}
+
+.form-div {
+    background-color: whitesmoke;
+    border-style: solid;
+    border-color: #b19cd9;
+}
+
+.form-error {
+    background-color: pink;
+}

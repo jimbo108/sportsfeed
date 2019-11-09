@@ -177,6 +177,9 @@ class NewUserTest(TestCase):
         response = self.client.post('/login/new/submit/', data)
 
         self.assertTrue(response.context.get('duplicate_email'))
+    
+#    def test_new_user_register_preferences_returns_template(self):
+#        response = self.client.get()
 
 #class UserModelTest(TestCase):
 

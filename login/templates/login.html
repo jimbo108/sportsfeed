@@ -4,12 +4,7 @@
     <br/>
     <form action='/login/submit/' method="POST">
         {% csrf_token %}
-        <input id="login_email_box" name="email" placeholder="Login"/>
-        <br/>
-        <br/>
-        <input id="login_password_box" name="password" placeholder="Password"/>
-        <br/>
-        <br/>
+        {{ form.as_p }}
         <input id="login_submit_button" type="submit" value="Submit"/>
     </form>
     <a href="/login/new/" id="new_user_link">Create Login</a>

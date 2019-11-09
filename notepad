@@ -1,0 +1,49 @@
+1. Finish new user validation DONE
+	Fields:
+		name
+        email
+        password
+    States:
+        field missing
+        field invalid
+    Behavior:
+        Fields colored red for both invalid and missing
+2. Create HTML / CSS skeleton for feed page / design
+    
+    User Story: Bob is a fan of Arsenal as well as Newcastle United.  He wants to see upcoming fixtures.
+    He creates an account and logs into the site.  Bob is sent to a page where he chooses the teams he 
+    wishes to follow.  He chooses Arsenal and Newcastle United from a checklist, and clicks through.  
+    He now sees a feed of upcoming fixtures.  They are interlaced chronologically, and only contain 
+    the teams involved as well as the home team.  
+    
+    2.a. Replace custom user model with django user model 
+    2.b. Use django forms for registration 
+    	Fields:
+            name
+            username
+            email
+            password
+            verify password 
+        States:
+            name invalid
+            username missing
+            username invalid
+            email missing
+            email invalid
+            password missing
+            password invalid
+            verify password doesn't match
+
+        Behavior:
+            Unknown, let's see what the form does
+        Notes:
+    2.c. Use django forms for login 
+         Should be able to use stock everything 
+    2.d. Use django login activity override in urls.py -- understand if this is actually necessary to plug into the
+         auth framework 
+<-- Separate note --> 
+://github.com/twbs/bootstrap/releases/download/v4.3.1/bootstrap-4.3.1-dist.zipk. Add 
+<-- End note -->
+
+
+

@@ -22,7 +22,8 @@ urlpatterns = [
     url(r'^login/new/submit/', login_views.new_user_submit),
     url(r'^login/new/', login_views.new_user),
     url(r'^home/', home_views.home),
-    url(r'^login/submit/', login_views.submit),
-    url(r'^login/', login_views.login),
+    url(r'^login/submit/', login_views.login_submit),
+    url(r'^login/', login_views.login_user),
     url(r'^admin/', admin.site.urls),
+    url(r'^login/new/registerPreferences/', login_views.register_preferences)
 ]

@@ -1,11 +1,15 @@
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.ui import WebDriverWait as web_driver_wait
 from django.test import LiveServerTestCase
 from django.contrib.auth.hashers import make_password
 import time
-from login.models import User
+from django.contrib.auth.models import User, UserManager
 
-class NewVisitorLoginTest(LiveServerTestCase):
+class SeleniumTest(LiveServerTestCase):
 
     def setUp(self):
         self.browser = webdriver.Firefox()
@@ -13,46 +17,70 @@ class NewVisitorLoginTest(LiveServerTestCase):
     def tearDown(self):
         self.browser.quit()
 
+ 
+    def wait_for_element(self, element_id, timeout=None):
+        element_present = False
+        if timeout is None:
+            timeout = 1
+        try:
+            element_present = ec.presence_of_element_located((By.ID, element_id))
+            web_driver_wait(self.browser, timeout).until(element_present)
+        except TimeoutException as e:
+            raise e
+
+    def wait_for_elements(self, element_id_list, timeout=None):
+        elements_present = False
+        if timeout is None:
+            timeout = 1
+
+        for element_id in element_id_list:
+            try:
+                element_present = ec.presence_of_element_located((By.ID,
+                                                                     element_id))
+                web_driver_wait(self.browser, timeout).until(element_present)
+            except TimeoutException as e:
+                raise e
+    
+
+
+class NewVisitorLoginTest(SeleniumTest):
+
     def test_can_enter_email_and_password(self):
-
         self.browser.get(self.live_server_url + '/login/')
-        time.sleep(2)
 
-        login_email_box = self.browser.find_element_by_id('login_email_box')
-        self.assertIsNotNone(login_email_box)
+        self.wait_for_elements(['id_password', 'id_username'])
 
-        login_email_box.send_keys('test@emailhost.com')
-        time.sleep(1)
+        username_input = self.browser.find_element_by_id('id_username')
+        self.assertIsNotNone(username_input)
 
-        password_box = self.browser.find_element_by_id('login_password_box')
-        self.assertIsNotNone(login_email_box)
+        username_input.send_keys('test_user')
 
-        password_box.send_keys('password')
+        password_input = self.browser.find_element_by_id('id_password')
+        self.assertIsNotNone(password_input)
 
-
-        # password_box.send_keys(Keys.RETURN) Wouldn't do anything
+        password_input.send_keys('password')
 
     def test_enter_credentials_failed_login_displays_failure_message(self):
 
         self.browser.get(self.live_server_url + '/login/')
-        time.sleep(2)
+        self.wait_for_elements(['id_password', 'id_username', 'login_submit_button'])
 
-        login_email_box = self.browser.find_element_by_id('login_email_box')
-        self.assertIsNotNone(login_email_box)
+        username_input = self.browser.find_element_by_id('id_username')
+        self.assertIsNotNone(username_input)
 
-        login_email_box.send_keys('test@emailhost.com')
-        time.sleep(1)
+        username_input.send_keys('test@emailhost.com')
 
-        password_box = self.browser.find_element_by_id('login_password_box')
-        self.assertIsNotNone(password_box)
+        password_input = self.browser.find_element_by_id('id_password')
+        self.assertIsNotNone(password_input)
 
-        password_box.send_keys('password')
+        password_input.send_keys('password')
 
         submit_button = self.browser.find_element_by_id('login_submit_button')
         self.assertIsNotNone(submit_button)
 
         submit_button.click()
-        time.sleep(2)
+        
+        self.wait_for_element('failed_login_paragraph')
 
         failed_login_paragraph = self.browser.find_element_by_id('failed_login_paragraph')
         self.assertIsNotNone(failed_login_paragraph)
@@ -60,72 +88,75 @@ class NewVisitorLoginTest(LiveServerTestCase):
         failed_login_text = failed_login_paragraph.text
 
         self.assertEqual(failed_login_text, "Incorrect login credentials")
-    
+
     def test_enter_credentials_successful_login_redirects_to_home(self):
 
-        email = "test@testhost.com"
+        username = "test_username"
         password = "password"
         self.browser.get(self.live_server_url + '/login/')
-        time.sleep(1)
 
-        User.objects.create(email=email, hashed_password=make_password(password))
-        print(self.live_server_url)
-        login_email_box = self.browser.find_element_by_id('login_email_box')
-        self.assertIsNotNone(login_email_box)
+        user = User.objects.create_user(username=username, password=password)
+        #user_manager = UserManager()
+        #user_manager.create_user(username, None, password)
 
-        login_email_box.send_keys(email)
-        time.sleep(1)
+        self.wait_for_elements(['id_password', 'id_username',
+                                'login_submit_button'])
 
-        password_box = self.browser.find_element_by_id('login_password_box')
-        self.assertIsNotNone(password_box)
+        username_input = self.browser.find_element_by_id('id_username')
+        self.assertIsNotNone(username_input)
 
-        password_box.send_keys(password)
+        username_input.send_keys(username)
+
+        password_input = self.browser.find_element_by_id('id_password')
+        self.assertIsNotNone(password_input)
+
+        password_input.send_keys(password)
 
         submit_button = self.browser.find_element_by_id('login_submit_button')
         self.assertIsNotNone(submit_button)
 
-        self.assertIsNotNone(User.objects.get(email=email))
+        self.assertIsNotNone(User.objects.get(username=username))
 
         submit_button.click()
 
         time.sleep(1)
-
+        
         self.assertEqual(self.browser.current_url, self.live_server_url + '/home/')
 
+    # TODO: Figure out the 'expected str, bytes.. etc. error
     def test_new_user_create_credentials_and_login_redirects_to_home(self):
 
-        name = "Test Testington"
-        email = "test@testhost.com"
-        password = "password"
+        username = "test_user"
+        password = "test_pass_asdf"
 
         self.browser.get(self.live_server_url + '/login/')
-        time.sleep(1)
+        self.wait_for_element('new_user_link') 
 
         new_user_link = self.browser.find_element_by_id('new_user_link')
         self.assertIsNotNone(new_user_link)
 
         new_user_link.click()
-        time.sleep(1)
+
+        self.wait_for_elements(['id_username', 'id_password1',
+                                'id_password2','new_user_submit_button'])
+
 
         self.assertEqual(self.browser.current_url, self.live_server_url + '/login/new/')
 
-        name_input = self.browser.find_element_by_id('new_user_name_field')
-        self.assertIsNotNone(name_input)
+        username_input = self.browser.find_element_by_id('id_username')
+        self.assertIsNotNone(username_input)
 
-        name_input.send_keys(name)
-        time.sleep(1)
+        username_input.send_keys(username)
 
-        email_input = self.browser.find_element_by_id('new_user_email_field')
-        self.assertIsNotNone(email_input)
-
-        email_input.send_keys(email)
-        time.sleep(1)
-
-        password_input = self.browser.find_element_by_id('new_user_password_field')
+        password_input = self.browser.find_element_by_id('id_password1')
         self.assertIsNotNone(password_input)
 
         password_input.send_keys(password)
-        time.sleep(1)
+        
+        password_confirm_input = self.browser.find_element_by_id('id_password2')
+        self.assertIsNotNone(password_confirm_input)
+
+        password_confirm_input.send_keys(password)
 
         new_user_submit_button = self.browser.find_element_by_id('new_user_submit_button')
         self.assertIsNotNone(new_user_submit_button)
@@ -135,13 +166,13 @@ class NewVisitorLoginTest(LiveServerTestCase):
 
         self.assertEqual(self.browser.current_url, self.live_server_url + '/home/')
 
-    def test_new_user_create_credentials_and_login_missing_fields_highlight_and_message(self):
-        blank_name = ""
-        email = "test@testhost.com"
-        password = "password"
+    def test_new_user_create_credentials_and_login_missing_fields_no_redirect(self):
+        blank_username = ""
+        password = "test_password_asdf"
 
         self.browser.get(self.live_server_url + '/login/')
-        time.sleep(1)
+
+        self.wait_for_element('new_user_link')
 
         new_user_link = self.browser.find_element_by_id('new_user_link')
         self.assertIsNotNone(new_user_link)
@@ -151,22 +182,25 @@ class NewVisitorLoginTest(LiveServerTestCase):
 
         self.assertEqual(self.browser.current_url, self.live_server_url + '/login/new/')
 
-        name_input = self.browser.find_element_by_id('new_user_name_field')
-        self.assertIsNotNone(name_input)
+        self.wait_for_elements(['id_username', 'id_password1', 'id_password2',
+                                'new_user_submit_button'])
 
-        name_input.send_keys(blank_name)
+        username_input = self.browser.find_element_by_id('id_username')
+        self.assertIsNotNone(username_input)
+
+        username_input.send_keys(blank_username)
         time.sleep(1)
 
-        email_input = self.browser.find_element_by_id('new_user_email_field')
-        self.assertIsNotNone(email_input)
-
-        email_input.send_keys(email)
-        time.sleep(1)
-
-        password_input = self.browser.find_element_by_id('new_user_password_field')
+        password_input = self.browser.find_element_by_id('id_password1')
         self.assertIsNotNone(password_input)
 
         password_input.send_keys(password)
+        time.sleep(1)
+
+        password_confirm_input = self.browser.find_element_by_id('id_password2')
+        self.assertIsNotNone(password_confirm_input)
+
+        password_confirm_input.send_keys(password)
         time.sleep(1)
 
         new_user_submit_button = self.browser.find_element_by_id('new_user_submit_button')
@@ -175,10 +209,9 @@ class NewVisitorLoginTest(LiveServerTestCase):
         new_user_submit_button.click()
         time.sleep(1)
 
-        name_input = self.browser.find_element_by_id('new_user_name_field')
-        name_input_class = name_input.get_attribute("class")
+        self.assertEqual(self.browser.current_url, self.live_server_url +
+                         '/login/new/')
 
-        self.assertEqual(name_input_class, "invalid-or-missing")        
 
     def test_new_user_create_credentials_and_login_invalid_email_highlight_and_message(self):
         pass
@@ -188,7 +221,6 @@ class NewVisitorLoginTest(LiveServerTestCase):
 
     def test_new_user_create_credentials_and_login_invalid_password_highlight_and_message(self):
         pass
- 
 
 
 

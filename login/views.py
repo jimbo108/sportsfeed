@@ -14,13 +14,13 @@ def login_user(request):
     return render(request, 'login.html', {'form': form})
 
 def login_submit(request):
-    form = AuthenticationForm(request)
+    form = AuthenticationForm(data=request.POST)
     if form is not None and form.is_valid():
         user = authenticate(request, username=form.cleaned_data.get('username'), 
                             password=form.cleaned_data.get('password'))
         if user is not None:
             login(request, user)
-            redirect('/home/')
+            return redirect('/home/')
         else:
             return login_submission_failure(request, {'form': form}) 
     else:
@@ -53,7 +53,7 @@ def new_user(request):
     return render(request, 'new_user.html', {'form': new_user_form})
 
 def new_user_submit(request):
-    new_user_form = NewUserForm(request.POST)
+    new_user_form = NewUserForm(data=request.POST)
     if new_user_form is not None and new_user_form.is_valid():
         new_user_form.save()
         user = authenticate(request, username=new_user_form.cleaned_data.get('username'), 
@@ -110,7 +110,7 @@ def new_user_submit(request):
    
 
 def login_submission_failure(request, context):
-    context = {'failure': True}
+    context['failure'] = True
     return render(request, 'login.html', context)
 
 def new_user_submission_failure(request, context=None):

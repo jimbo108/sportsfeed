@@ -190,19 +190,16 @@ class NewVisitorLoginTest(SeleniumTest):
         self.assertIsNotNone(username_input)
 
         username_input.send_keys(blank_username)
-        time.sleep(1)
 
         password_input = self.browser.find_element_by_id('id_password1')
         self.assertIsNotNone(password_input)
 
         password_input.send_keys(password)
-        time.sleep(1)
 
         password_confirm_input = self.browser.find_element_by_id('id_password2')
         self.assertIsNotNone(password_confirm_input)
 
         password_confirm_input.send_keys(password)
-        time.sleep(1)
 
         new_user_submit_button = self.browser.find_element_by_id('new_user_submit_button')
         self.assertIsNotNone(new_user_submit_button)
@@ -212,6 +209,100 @@ class NewVisitorLoginTest(SeleniumTest):
 
         self.assertEqual(self.browser.current_url, self.live_server_url +
                          '/login/new/')
+
+    def test_new_user_create_credentials_and_login_creates_user(self):
+
+        username = "test_user"
+        password = "test_pass_asdf"
+
+        self.browser.get(self.live_server_url + '/login/')
+        self.wait_for_element('new_user_link') 
+
+        new_user_link = self.browser.find_element_by_id('new_user_link')
+        self.assertIsNotNone(new_user_link)
+
+        new_user_link.click()
+
+        self.wait_for_elements(['id_username', 'id_password1',
+                                'id_password2','new_user_submit_button'])
+
+
+        self.assertEqual(self.browser.current_url, self.live_server_url + '/login/new/')
+
+        username_input = self.browser.find_element_by_id('id_username')
+        self.assertIsNotNone(username_input)
+
+        username_input.send_keys(username)
+
+        password_input = self.browser.find_element_by_id('id_password1')
+        self.assertIsNotNone(password_input)
+
+        password_input.send_keys(password)
+        
+        password_confirm_input = self.browser.find_element_by_id('id_password2')
+        self.assertIsNotNone(password_confirm_input)
+
+        password_confirm_input.send_keys(password)
+
+        new_user_submit_button = self.browser.find_element_by_id('new_user_submit_button')
+        self.assertIsNotNone(new_user_submit_button)
+
+        new_user_submit_button.click()
+        time.sleep(1)
+
+        user = User.objects.get_by_natural_key(username)
+        
+        self.assertIsNotNone(user)
+        self.assertEqual(user.username, username)
+
+    def test_new_user_create_credentials_and_login_duplicate_not_redirect(self):
+        username = "test_user"
+        password = "test_pass_asdf"
+
+        User.objects.create_user(username, None, password)
+
+        self.browser.get(self.live_server_url + '/login/')
+        self.wait_for_element('new_user_link') 
+
+        new_user_link = self.browser.find_element_by_id('new_user_link')
+        self.assertIsNotNone(new_user_link)
+
+        new_user_link.click()
+
+        self.wait_for_elements(['id_username', 'id_password1',
+                                'id_password2','new_user_submit_button'])
+
+
+        self.assertEqual(self.browser.current_url, self.live_server_url + '/login/new/')
+
+        username_input = self.browser.find_element_by_id('id_username')
+        self.assertIsNotNone(username_input)
+
+        username_input.send_keys(username)
+
+        password_input = self.browser.find_element_by_id('id_password1')
+        self.assertIsNotNone(password_input)
+
+        password_input.send_keys(password)
+        
+        password_confirm_input = self.browser.find_element_by_id('id_password2')
+        self.assertIsNotNone(password_confirm_input)
+
+        password_confirm_input.send_keys(password)
+
+        new_user_submit_button = self.browser.find_element_by_id('new_user_submit_button')
+        self.assertIsNotNone(new_user_submit_button)
+
+        new_user_submit_button.click()
+        time.sleep(1)
+
+        user = User.objects.get_by_natural_key(username)
+        
+        self.assertEqual(self.browser.current_url, self.live_server_url +
+                         '/login/new/submit/')
+
+
+       
 
 class HomeViewTest(SeleniumTest):
     pass

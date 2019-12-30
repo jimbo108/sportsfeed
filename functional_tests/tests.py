@@ -124,7 +124,7 @@ class NewVisitorLoginTest(SeleniumTest):
         self.assertEqual(self.browser.current_url, self.live_server_url + '/home/')
 
     # TODO: Figure out the 'expected str, bytes.. etc. error
-    def test_new_user_create_credentials_and_login_redirects_to_home(self):
+    def test_new_user_create_credentials_and_login_redirects_to_preferences(self):
 
         username = "test_user"
         password = "test_pass_asdf"
@@ -164,7 +164,8 @@ class NewVisitorLoginTest(SeleniumTest):
         new_user_submit_button.click()
         time.sleep(1)
 
-        self.assertEqual(self.browser.current_url, self.live_server_url + '/home/')
+        self.assertEqual(self.browser.current_url, self.live_server_url +
+                         '/preferences/')
 
     def test_new_user_create_credentials_and_login_missing_fields_no_redirect(self):
         blank_username = ""
@@ -212,16 +213,12 @@ class NewVisitorLoginTest(SeleniumTest):
         self.assertEqual(self.browser.current_url, self.live_server_url +
                          '/login/new/')
 
+class HomeViewTest(SeleniumTest):
+    pass
 
-    def test_new_user_create_credentials_and_login_invalid_email_highlight_and_message(self):
-        pass
-
-    def test_new_user_create_credentials_and_login_invalid_name_highlight_and_message(self):
-        pass
-
-    def test_new_user_create_credentials_and_login_invalid_password_highlight_and_message(self):
-        pass
-
+class PreferencesViewTest(SeleniumTest):
+    pass
+#    def test_
 
 
 

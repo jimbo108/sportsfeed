@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import resolve
-from login.views import login, submit, new_user
+from login.views import login_user, login_submit, new_user
 from login.models import User
 from django.contrib.auth.hashers import make_password
 

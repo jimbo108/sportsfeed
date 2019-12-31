@@ -16,31 +16,17 @@
     He now sees a feed of upcoming fixtures.  They are interlaced chronologically, and only contain 
     the teams involved as well as the home team.  
     
-    2.a. Replace custom user model with django user model 
-    2.b. Use django forms for registration 
-    	Fields:
-            name
-            username
-            email
-            password
-            verify password 
-        States:
-            name invalid
-            username missing
-            username invalid
-            email missing
-            email invalid
-            password missing
-            password invalid
-            verify password doesn't match
-
-        Behavior:
-            Unknown, let's see what the form does
-        Notes:
-    2.c. Use django forms for login 
+DONE 3. Replace custom user model with django user model 
+DONE 4. Use django forms for registration 
+DONE 5. Use django forms for login 
          Should be able to use stock everything 
-    2.d. Use django login activity override in urls.py -- understand if this is actually necessary to plug into the
+DONE 6. Use django login activity override in urls.py -- understand if this is actually necessary to plug into the
          auth framework 
+
+7. Add team preferences model to user
+8. Create preferences activity
+9. Link to preferences activity
+
 <-- Separate note --> 
 ://github.com/twbs/bootstrap/releases/download/v4.3.1/bootstrap-4.3.1-dist.zipk. Add 
 <-- End note -->

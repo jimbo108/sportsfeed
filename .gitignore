@@ -1,3 +1,5 @@
 env/
 *.pyc
 /__pycache__/
+geckodriver.log
+db.sqlite3

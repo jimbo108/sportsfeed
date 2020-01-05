@@ -1,5 +1,6 @@
 from django.test import TestCase
-from django.contrib.auth import User
+from django.contrib.auth.models import User
+from django.urls import resolve
 from home.models import Team
 from .models import TeamPreference
 from .views import user_preferences
@@ -10,24 +11,34 @@ class PreferencesTest(TestCase):
     def test_preferences__get__returns_new_page(self):
         user = self.create_user()
         
-        response = resolve('/user-preferences/' + str(user.id))
+        response = resolve('/user-preferences/' + str(user.id) + '/')
         self.assertEqual(response.func, user_preferences)
     
     def test_preferences__get__returns_correct_template(self):
         user = self.create_user()
-        response = self.client.get('/user-preferences/' + str(user.id))
+
+        response = self.client.get('/user-preferences/' + str(user.id) + '/')
 
         self.assertTemplateUsed(response, 'user_preferences.html')
-    
-    def test_preferences_model__instantiate_field__contains_correct_fields(self):
+   
+    def test_preferences__get__returns_correct_input_forms(self):
         user = self.create_user()
-        team = self.create_team("team_1")
-        
+        team = self.create_team("team_0")
+        num_unchecked = 4 
         team_preference = TeamPreference(user=user, team=team)
+        
+        for i in range(0,num_unchecked):
+            self.create_team("team_" + str(i+1))
 
-        for i in range(0,10):
-            self.create_team("team_" + str(i+2))
-        #preferences_model = TeamPreferenceForm(
+        response = self.client.get('/user-preferences/' + str(user.id))
+
+        self.assertEqual(response.context['forms'][0].initial['is_preference'],
+                         True)
+
+        for i in range(0,num_unchecked):   
+            self.assertEqual(response.context['forms'][i].initial['is_preference'],
+                             False)       
+    
     @staticmethod
     def create_user() -> User:
         username = "test_username"

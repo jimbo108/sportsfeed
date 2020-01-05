@@ -3,7 +3,12 @@ from .enums import ExternalIdentifierType
 from typing import Union
 
 class Team(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100) 
+    is_active = models.BooleanField(default=True)
+    
+    @classmethod
+    def get_active_teams(self):
+        return Team.objects.filter(is_active=True)
 
 class Api(models.Model):
     name = models.CharField(max_length=100)
@@ -14,6 +19,7 @@ class TeamMapping(models.Model):
     numeric_external_identifier = models.IntegerField(default=None, null=True)
     string_external_identifier = models.CharField(max_length=100, default=None,
                                                 null=True)
+    
     @classmethod
     def get_team_from_external_id(self, external_identifier_type:
                                   ExternalIdentifierType, external_identifier:
@@ -44,7 +50,6 @@ class TeamMapping(models.Model):
 
         return team_mapping.team
              
-         
       
 
    

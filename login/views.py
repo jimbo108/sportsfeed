@@ -38,7 +38,7 @@ def new_user_submit(request):
                             password=new_user_form.cleaned_data.get('password1'))
         if user is not None:
             login(request, user)
-            return redirect('/preferences/')
+            return redirect('/user-preferences/')
         else:
             return new_user_submission_failure(request, {'form': new_user_form})
     else:

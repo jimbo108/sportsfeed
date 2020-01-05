@@ -39,7 +39,6 @@ class TeamMapping(models.Model):
             return None
         except self.MultipleObjectsReturned as e:
             raise e
-        
         if not team_mapping:
             return None
 

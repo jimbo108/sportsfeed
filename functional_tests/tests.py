@@ -1,3 +1,4 @@
+from typing import List
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -8,9 +9,11 @@ from django.test import LiveServerTestCase
 from django.contrib.auth.hashers import make_password
 import time
 from django.contrib.auth.models import User, UserManager
+from home.models import Team
+from preferences.models import TeamPreference
 
 class SeleniumTest(LiveServerTestCase):
-
+    
     def setUp(self):
         self.browser = webdriver.Firefox()
 
@@ -43,6 +46,7 @@ class SeleniumTest(LiveServerTestCase):
     
 
 
+# TODO: Figure out the 'expected str, bytes.. etc. error
 class NewVisitorLoginTest(SeleniumTest):
 
     def test_can_enter_email_and_password(self):
@@ -64,7 +68,7 @@ class NewVisitorLoginTest(SeleniumTest):
 
         self.browser.get(self.live_server_url + '/login/')
         self.wait_for_elements(['id_password', 'id_username', 'login_submit_button'])
-
+        
         username_input = self.browser.find_element_by_id('id_username')
         self.assertIsNotNone(username_input)
 
@@ -123,7 +127,6 @@ class NewVisitorLoginTest(SeleniumTest):
         
         self.assertEqual(self.browser.current_url, self.live_server_url + '/home/')
 
-    # TODO: Figure out the 'expected str, bytes.. etc. error
     def test_new_user_create_credentials_and_login_redirects_to_preferences(self):
 
         username = "test_user"
@@ -165,7 +168,7 @@ class NewVisitorLoginTest(SeleniumTest):
         time.sleep(1)
 
         self.assertEqual(self.browser.current_url, self.live_server_url +
-                         '/preferences/')
+                         '/user-preferences/')
 
     def test_new_user_create_credentials_and_login_missing_fields_no_redirect(self):
         blank_username = ""
@@ -302,15 +305,72 @@ class NewVisitorLoginTest(SeleniumTest):
                          '/login/new/submit/')
 
 
-       
-
 class HomeViewTest(SeleniumTest):
     pass
 
+
 class PreferencesViewTest(SeleniumTest):
-    pass
-#    def test_
 
+    def test_new_user_create_preferences__single_preference__saves_to_model(self):
+        username = "test_user"
+        password = "test_pass_asdf"
 
+        user = User(username=username, password=password)
+        user.save()
+         
+        self.create_teams()
+
+        self.browser.get(self.live_server_url + '/user-preferences/' +
+                         str(user.id) + '/')
+        
+        input_elements = self.get_team_input_elements()
+        self.wait_for_elements(input_elements)
+        
+        team_two_input = self.browser.find_element_by_id(input_elements[2])
+        team_two_input.click()
+
+        pref_submit_button = self.browser.find_element_by_id("preferences_submit_button")  
+        pref_submit_button.click()
+
+        time.sleep(1)
+
+        team_preferences = TeamPreference.get_preferences_for_user(user) 
+        
+        num_team_preferences = team_preferences.count()
+        self.assertEqual(num_team_preferences, 1)
+
+        team_preference = team_preferences.get(id=2)
+       
+        self.assertIsNotNone(team_preference)
+        self.assertEqual(team_preference.name, "team_2")
+    
+    def test_new_user_create_preferences__multiple_preferences__saves_to_model(self):
+        pass
+
+    def test_existing_user_edit_preferences__single_preference__returns_prechecked(self):
+        pass
+
+    def test_existing_user_edit_preferences__multiple_preferences__returns_prechecked_and_modified(self):
+        pass
+    
+    @staticmethod 
+    def create_teams() -> None:
+        for i in range(0, 10):
+            team = Team(id=i, name=("team_" + str(i)))
+            team.save()
+
+    @staticmethod 
+    def get_team_input_elements() -> List[str]:
+        all_element_ids = []
+        team_input_ids = []
+        
+        for i in range(0, 10):
+            input_id = "team_" + str(i)
+            team_input_ids.append(input_id)
+        
+        all_element_ids.append("preferences_submit_button")
+        all_element_ids.extend(team_input_ids)
+
+        return all_element_ids
 
 # Create your tests here.

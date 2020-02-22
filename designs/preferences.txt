@@ -1,0 +1,83 @@
+There are two sources of truth for the teams associated with a player:
+	1) The API server, and more specifically a primary ID associated with the team
+	2) The local server, ''
+
+We need to maintain a mapping between these two sources.  Each EPL team will originate in the
+local server as models initialized by json.  These models will be pointed to by a mapping table
+with the following columns:
+
+1) Internal Team Identifier
+2) API ForeignKey
+3) API Primary ID (from response, no pointer to an actual local row)
+
+So there will be a total of 5 tables/models involved:
+
+1) Team - home 
+	a) id
+	b) name
+2) TeamMapping - home
+	a) id
+	b) team (FK)
+	c) api (FK)
+	d) external_id
+3) API - home
+	a) id
+	b) name
+4) User (built-in) - N/A
+5) TeamPreference - preferences
+	a) id
+	b) user (FK)
+	c) team (FK)
+
+The flow of information will be as follows:
+0) Team, TeamMapping, and API initialized via JSON
+1) A user chooses preferred teams, which populate TeamPreference rows, which have a ForeignKey
+   pointing to the User row
+2) On request:
+	a) A lookup of TeamPreference rows will be done
+	b) For every TeamPreference row, we will get the Team ForeignKey, and lookup TeamMapping
+	   rows with the:
+		i ) Context specific API ForeignKey (hard-coded)
+		ii) Team ForeignKey
+	   and use the final column, representing the API foreign key, for the lookup 
+
+Assumptions + "not doing this":
+1) Currently making team as simple as possible, not adding league association at this point, will hard code it as part of the EPL
+<--Scratch-->
+Put Team, TeamMapping, and API in home
+PUt TeamPreference in Preferences
+
+DONE 1) Models
+DONE 2) Instantiation
+DONE 3) Mapping APIs
+
+**********VIEW**********
+1) Create a dynamically generated field, which will take all Team rows and
+create BooleanFields (HTML inputs), with the id:
+
+"team_[team_id]"
+
+2) on GET, use the user ID to get pre-check all teams that are checked
+3) on PUT, save to TeamPreference
+4) Add bootstrap 
+
+Arsenal = "Arsenal"
+AstonVilla = "Aston Villa"
+Bournemouth = "AFC Bournemoth"
+BrightonAndHoveAlbion = "Brighton and Hove Albion"
+Burnley = "Burnley"
+Chelsea = "Chelsea"
+CrystalPalace = "Crystal Palace"
+Everton = "Everton"
+Leicester = "Leicester City"
+Liverpool = "Liverpool"
+ManCity = "Manchester City"
+ManUnited = "Manchester United"
+NewCastle = "Newcastle United"
+Norwich = "Norwich City"
+Sheffield = "Sheffield United"
+Southampton = "Southampton"
+Tottenham = "Tottenham Hotspur"
+Watford = "Watford"
+WestHam = "West Ham United"
+Wolves = "Wolverhampton Wanderers"

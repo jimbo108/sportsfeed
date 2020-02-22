@@ -1,10 +1,13 @@
 <--Backlog-->
-1) Add league associations to Team model
-2) Complete preferences activity
+Add league associations to Team model
+Complete preferences activity
+Add @user_required where necessary
 <--/Backlog-->
 
 <--In Progress-->
-
+Preferences data model + instantiation
+Preferences view design
+Preferences view integration
 <--/In Progress-->
 
 <--Completed-->

@@ -1,0 +1,9 @@
+12/31/19 2:51AM - Finished initializing teams data, now looking at initializing mappings as well.
+		  May be looking to use fantasy epl API for everything at first (rather than football-data,
+		  with fantasy EPL data to grab teams that you have players on), but the APIs are
+		  not currently working.  May still want to stick with football-data.org to branch
+		  out to other leagues (and also not sure what the data differences are).
+
+01/05/20 2:02AM - Finished initializing all data, now working on preferences
+          view and model -- base case functional and unit coverage is complete,
+          now working on the functionality.

@@ -1,6 +1,8 @@
 from django import forms 
 from home.models import Team
 from .models import TeamPreference
+from django.forms import formset_factory
+
 
 class TeamPreferenceForm(forms.ModelForm):
     
@@ -11,7 +13,10 @@ class TeamPreferenceForm(forms.ModelForm):
     def __init__(self, team_name, *args, **kwargs):
         super(TeamPreferenceForm, self).__init__(*args, **kwargs)
         self.fields['is_preference'].label = team_name
-    
+   
+
+TeamPreferenceFormSet = formset_factory(TeamPreferenceForm)
+
 #    def __init__(self, user, *args, **kwargs):
 #        super(TeamPreferenceForm, self).__init__(*args, **kwargs)
 #

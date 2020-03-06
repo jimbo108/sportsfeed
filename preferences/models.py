@@ -30,7 +30,6 @@ class TeamPreference(models.Model):
     # Bookmark -- write tests and add to view
     @classmethod
     def reset_user_teams(self, user: User, active_teams: List[Team]) -> None:
-        breakpoint()
         user_team_prefs = self._get_user_team_preferences(user)
         teams_without_prefs = list(set(active_teams) - set([pref.team for pref in
                                                             user_team_prefs]))

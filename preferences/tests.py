@@ -45,7 +45,8 @@ class PreferencesTest(TestCase):
 
     # prefs for inactive teams marked as inactive
     # new active teams without prefs marked as active, not a preference
-    # create a roster of a few teams, with a subset as preferences
+    # create a roster of a few teams, with a subset as preferences (user, team,
+    # preference)
     # save the preferences
     # mark the teams as inactive and add new active teams
     # GET
@@ -53,24 +54,53 @@ class PreferencesTest(TestCase):
     # that new ones have appeared
     def test_preferences__get__resets_prefs_correctly(self):
         user = self.create_user()
-                
-    def test_scratch_reset_user_teams(self):
+        found_inactive_team = False
+        found_new_active_team = False
+        num_teams = 5
         teams = []
-        user = self.create_user()
-        for i in range(0,4):
-            teams.append(self.create_team("test_team" + str(i)))
-        teams.append(self.create_team("test_team" + str(4), False))
-        active_teams = Team.get_active_teams()
 
+        for i in range(0, 5):
+            teams.append(self.create_team(team_name="test_team" + str(i)))
+        
         self.create_preference(user, teams[0])
-        self.create_preference(user, teams[4])
+        self.create_preference(user, teams[1])
 
-        TeamPreference.reset_user_teams(user, active_teams)
-#    def test_preferences__post__sets_correct_state(self):
-#        user = self.create_user()
-#        team = self.create_team("team_0")
-#
-#        for i in range
+        response = self.client.get('/user-preferences/' + str(user.id) + '/')
+        forms = response.context['forms'] 
+
+        for i in range(0, 2):
+            self.assertTrue(forms[i].initial['is_preference'])
+ 
+        teams[0].is_active = False
+        teams[0].save()
+
+        teams.append(self.create_team(team_name="test_team5"))
+
+        response = self.client.get('/user-preferences/' + str(user.id) + '/')
+        forms = response.context['forms']
+
+        for form in forms:
+            form_label = form.fields['is_preference'].label
+            if form_label == 'test_team0':
+                found_inactive_team = True
+            elif form_label == 'test_team1':
+                self.assertTrue(form.initial['is_preference'])
+            elif form_label == 'test_team5':
+                found_new_active_team = True
+        
+        self.assertFalse(found_inactive_team)
+        self.assertTrue(found_new_active_team)
+
+    def test_preferences__post__sets_correct_state(self):
+        user = self.create_user()
+        num_teams = 5
+        teams = []
+
+        for i in range(0, 5):
+            teams.append(self.create_team(team_name="test_team" + str(i)))
+        
+#        self.client.post('/user-preferences/' + str(user.id) + '/', data={
+
     
     @staticmethod
     def create_preference(user: User, team: Team) -> TeamPreference:

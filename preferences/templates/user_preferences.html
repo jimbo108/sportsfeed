@@ -6,13 +6,9 @@
 <br/>
 <form action='/user-preferences/{{ user_id }}/' method="POST">
     {% csrf_token %}
-	    {% for form in forms %}
-            {{ form.as_p }}
-        {% endfor %} 
-    <p>{{ hot_sauce }}</p>
+    {{ formset.as_p }}
     <input id="preferences_submit_button" type="submit" value="Submit" />
 </form>
-
 {% endblock %}
 
 

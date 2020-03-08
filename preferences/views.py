@@ -26,23 +26,7 @@ def user_preferences(request: HttpRequest, user_id: int) -> HttpResponse:
                                                                  'user_id':
                                                                   user.id})
                                                 
-#def user_preferences(request: HttpRequest, user_id: int) -> HttpResponse:
-#    user = User.objects.get(id=user_id)
-#    if user is None:
-#        return HttpResponse(status=500)
-#
-#    if request.method == "POST":
-#        breakpoint()
-#        pass
-#    else:
-#        active_teams = Team.get_active_teams()
-#        team_preferences = TeamPreference.get_user_team_preferences(user)
-#        preference_forms = get_preference_forms(team_preferences, active_teams)
-#        return render(request, 'user_preferences.html', context={'forms':
-#                                                                 preference_forms,
-#                                                                 'user_id':
-#                                                                  user.id})
-# 
+ 
 def get_preference_formset(user: User) -> TeamPreferenceFormSet:
     active_teams = Team.get_active_teams()
  

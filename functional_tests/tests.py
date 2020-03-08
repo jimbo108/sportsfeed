@@ -326,7 +326,176 @@ class PreferencesViewTest(SeleniumTest):
         input_elements = self.get_team_input_elements()
         self.wait_for_elements(input_elements)
         
-        team_two_input = self.browser.find_element_by_id(input_elements[2])
+        team_one_input = self.browser.find_element_by_id(input_elements[2])
+        team_one_input.click()
+
+        pref_submit_button = self.browser.find_element_by_id("preferences_submit_button")  
+        pref_submit_button.click()
+
+        time.sleep(1)
+
+        team_preferences = TeamPreference._get_user_team_preferences(user)
+        
+        num_teams_preferred = len(list(filter(lambda x: x.is_preference,
+                                     team_preferences)))
+        self.assertEqual(num_teams_preferred, 1)
+
+        team_preference = team_preferences.get(id=2)
+       
+        self.assertIsNotNone(team_preference)
+        self.assertEqual(team_preference.team.name, "team_1")
+    
+    def test_new_user_create_preferences__multiple_preferences__saves_to_model(self):
+        username = "test_user"
+        password = "test_pass_asdf"
+
+        user = User(username=username, password=password)
+        user.save()
+         
+        self.create_teams()
+
+        self.browser.get(self.live_server_url + '/user-preferences/' +
+                         str(user.id) + '/')
+        
+        input_elements = self.get_team_input_elements()
+        self.wait_for_elements(input_elements)
+        
+        team_one_input = self.browser.find_element_by_id(input_elements[2])
+        team_one_input.click()
+
+        team_two_input = self.browser.find_element_by_id(input_elements[3])
+        team_two_input.click()
+
+
+        pref_submit_button = self.browser.find_element_by_id("preferences_submit_button")  
+        pref_submit_button.click()
+
+        time.sleep(1)
+
+        team_preferences = TeamPreference._get_user_team_preferences(user)
+        
+        num_teams_preferred = len(list(filter(lambda x: x.is_preference,
+                                     team_preferences)))
+        self.assertEqual(num_teams_preferred, 2)
+
+        team_preference_one = team_preferences.get(id=2)
+        team_preference_two = team_preferences.get(id=3)
+        team_preference_three = team_preferences.get(id=4) 
+
+        self.assertIsNotNone(team_preference_one)
+        self.assertIsNotNone(team_preference_two)
+        self.assertIsNotNone(team_preference_three)
+
+        self.assertEqual(team_preference_one.team.name, "team_1")
+        self.assertEqual(team_preference_two.team.name, "team_2")
+        self.assertEqual(team_preference_three.team.name, "team_3")
+
+        self.assertTrue(team_preference_one.is_preference)
+        self.assertTrue(team_preference_two.is_preference)
+        self.assertFalse(team_preference_three.is_preference)
+           
+    def test_existing_user_edit_preferences__single_preference__returns_prechecked(self):
+        username = "test_user"
+        password = "test_pass_asdf"
+
+        user = User(username=username, password=password)
+        user.save()
+         
+        self.create_teams()
+
+        self.browser.get(self.live_server_url + '/user-preferences/' +
+                         str(user.id) + '/')
+        
+        input_elements = self.get_team_input_elements()
+        self.wait_for_elements(input_elements)
+        
+        team_one_input = self.browser.find_element_by_id(input_elements[2])
+        team_one_input.click()
+
+        pref_submit_button = self.browser.find_element_by_id("preferences_submit_button")  
+        pref_submit_button.click()
+
+        time.sleep(1)
+
+        team_preferences = TeamPreference._get_user_team_preferences(user)
+       
+        num_teams_preferred = len(list(filter(lambda x: x.is_preference,
+                                     team_preferences)))
+        self.assertEqual(num_teams_preferred, 1)
+
+        team_preference = team_preferences.get(id=2)
+       
+        self.assertIsNotNone(team_preference)
+        self.assertEqual(team_preference.team.name, "team_1")
+        self.assertTrue(team_preference.is_preference)
+
+        self.browser.get(self.live_server_url + '/user-preferences/' +
+                         str(user.id) + '/')
+
+        team_one_input = self.browser.find_element_by_id(input_elements[2])
+        self.assertTrue(team_one_input.is_selected())
+        
+        pref_submit_button = self.browser.find_element_by_id("preferences_submit_button")  
+        pref_submit_button.click()
+
+        time.sleep(1)
+
+        team_preferences = TeamPreference._get_user_team_preferences(user)
+       
+
+        num_teams_preferred = len(list(filter(lambda x: x.is_preference,
+                                     team_preferences)))
+        self.assertEqual(num_teams_preferred, 1)
+
+        team_preference = team_preferences.get(id=2)
+       
+        self.assertIsNotNone(team_preference)
+        self.assertEqual(team_preference.team.name, "team_1")
+        self.assertTrue(team_preference.is_preference)
+
+ 
+    def test_existing_user_edit_preferences__multiple_preferences__returns_prechecked_and_modified(self):
+        username = "test_user"
+        password = "test_pass_asdf"
+
+        user = User(username=username, password=password)
+        user.save()
+         
+        self.create_teams()
+
+        self.browser.get(self.live_server_url + '/user-preferences/' +
+                         str(user.id) + '/')
+        
+        input_elements = self.get_team_input_elements()
+        self.wait_for_elements(input_elements)
+        
+        team_one_input = self.browser.find_element_by_id(input_elements[2])
+        team_one_input.click()
+
+        pref_submit_button = self.browser.find_element_by_id("preferences_submit_button")  
+        pref_submit_button.click()
+
+        time.sleep(1)
+
+        team_preferences = TeamPreference._get_user_team_preferences(user)
+       
+        num_teams_preferred = len(list(filter(lambda x: x.is_preference,
+                                     team_preferences)))
+        self.assertEqual(num_teams_preferred, 1)
+
+        team_preference = team_preferences.get(id=2)
+       
+        self.assertIsNotNone(team_preference)
+        self.assertEqual(team_preference.team.name, "team_1")
+        self.assertTrue(team_preference.is_preference)
+
+        self.browser.get(self.live_server_url + '/user-preferences/' +
+                         str(user.id) + '/')
+
+        team_one_input = self.browser.find_element_by_id(input_elements[2])
+        self.assertTrue(team_one_input.is_selected())
+
+        team_two_input = self.browser.find_element_by_id(input_elements[3])
         team_two_input.click()
 
         pref_submit_button = self.browser.find_element_by_id("preferences_submit_button")  
@@ -334,25 +503,25 @@ class PreferencesViewTest(SeleniumTest):
 
         time.sleep(1)
 
-        team_preferences = TeamPreference.get_preferences_for_user(user) 
-        
-        num_team_preferences = team_preferences.count()
-        self.assertEqual(num_team_preferences, 1)
-
-        team_preference = team_preferences.get(id=2)
+        team_preferences = TeamPreference._get_user_team_preferences(user)
        
-        self.assertIsNotNone(team_preference)
-        self.assertEqual(team_preference.name, "team_2")
-    
-    def test_new_user_create_preferences__multiple_preferences__saves_to_model(self):
-        pass
 
-    def test_existing_user_edit_preferences__single_preference__returns_prechecked(self):
-        pass
+        num_teams_preferred = len(list(filter(lambda x: x.is_preference,
+                                     team_preferences)))
+        self.assertEqual(num_teams_preferred, 1)
 
-    def test_existing_user_edit_preferences__multiple_preferences__returns_prechecked_and_modified(self):
-        pass
-    
+        team_preference_one = team_preferences.get(id=2)
+        team_preference_two = team_preferences.get(id=3) 
+
+        self.assertIsNotNone(team_preference_one)
+        self.assertIsNotNone(team_preference_two)
+
+        self.assertEqual(team_preference_one.team.name, "team_1")
+        self.assertEqual(team_preference_two.team.name, "team_2")
+
+        self.assertTrue(team_preference_one.is_preference)
+        self.assertTrue(team_preference_two.is_preference)
+
     @staticmethod 
     def create_teams() -> None:
         for i in range(0, 10):
@@ -365,7 +534,7 @@ class PreferencesViewTest(SeleniumTest):
         team_input_ids = []
         
         for i in range(0, 10):
-            input_id = "team_" + str(i)
+            input_id = "id_form-" + str(i) + "-is_preference"
             team_input_ids.append(input_id)
         
         all_element_ids.append("preferences_submit_button")

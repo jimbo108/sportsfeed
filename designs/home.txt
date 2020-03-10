@@ -1,0 +1,46 @@
+High Level Technical Design:
+I will send out a request for the fixtures and parse them into fixture objects.  Fixture objects will descend from 
+model so that they can be cached, in order to:
+    limit requests
+    handle network failures
+
+Request objects involved:
+    Team
+    Fixture
+
+Calls involved:
+    Competition/Match subresource
+    https://api.football-data.org/v2/competitions/[team_id]/matches
+
+    with team_id hard coded to 2021 for EPL
+
+Simply request from the Competition/Match subresource, filter for matches, save fixtures for new IDs and update / save
+for all fixtures with a status other than "FINISHED".  This does leave us without a way to update previously saved
+resources if changes are made, but that is likely a non-issue (at least for the sake of this site).
+
+Fixture resources will be global -- there is no need to have separate per-user fixtures.
+
+(1) User accesses Home
+(2) Pull user preferences
+(3) Check last successful request for matches.  If less than ten seconds, reject and pull matches based on preferences.
+If >10 seconds, request again, check against the hash, and conditionally reject or re-parse all unfinished. 
+
+New Tables/Models:
+Fixture
+    home_team: Team
+    away_team: Team
+    home_score: int
+    away_score: int
+    kickoff_time_local: datetime
+    
+RequestAudit:
+    api: Api 
+    request_type: str 
+    request_time: datetime
+    hashed_response: str
+
+Changed Tables/Models:
+Api:
+    RequestsPerMinute
+    RequestInterval
+

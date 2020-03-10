@@ -32,4 +32,20 @@ DONE 6. Use django login activity override in urls.py -- understand if this is a
 <-- End note -->
 
 
+<-- New Note 3.3 -->
+Issue:
+Formset appears to be entirely unpopulated whenever self.fields is modified after the call to super() in
+the TeamPreferenceForm __init__.  self.fields does not exist before the call to super().  Initial values
+for fields can be overridden by modifying kwargs("initial").
+
+Attempting to access any element in formset (form), I get a RelatedObjectDoesNotExist error for team.  
+This behavior only occurs when I attempt to modify self.fields after the call to super().  
+self.fields['is_preference'].label appears to be set to the correct value when debugging
+
+Premises:
+Modifying self.fields after the call to super() is the cause of this behavior
+
+Hypotheses:
+?
+
 

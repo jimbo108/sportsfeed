@@ -1,6 +1,52 @@
 {
-    "python.pythonPath": "env/bin/python3",
+    "python.pythonPath": "env/bin/python",
     "git.ignoreLimitWarning": true,
     "vim.useSystemClipboard": true,
-    
+    "editor.rulers": [120],
+    "vim.insertModeKeyBindings": [
+        {
+            "before": ["j", "k"],
+             "after": ["<Esc>"]
+ 
+        }
+   ],
+   "editor.minimap.enabled": false,
+   "editor.fontSize": 12,
+   "terminal.integrated.shell.osx": "/usr/local/bin/zsh",
+   "workbench.editor.showTabs": false,
+   "python.linting.pylintPath": "/Users/jurban/.pyenv/",
+    "vim.normalModeKeyBindings": [
+    {
+        "before": ["g", "h"],
+        "commands": [
+            "cursorHome",
+        ]
+    },
+    {
+        "before": ["g", "j"],
+        "commands": [
+            "cursorBottom",
+        ]
+    },
+    {
+        "before": ["g", "k"],
+        "commands": [
+            "cursorTop",
+        ]
+    },
+    {
+        "before": ["g", "l"],
+        "commands": [
+            "cursorEnd",
+        ]
+    },
+    ],
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "vim.foldfix": true,
+    "python.linting.flake8Args": [
+        "--max-line-length=120"
+    ]
+
 }

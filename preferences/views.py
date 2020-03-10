@@ -4,7 +4,8 @@ from django.http import HttpRequest, HttpResponse
 from home.models import Team
 from django.contrib.auth.models import User
 from .models import TeamPreference
-from .forms import TeamPreferenceForm, TeamPreferenceFormSet
+from .forms import TeamPreferenceFormSet
+
 
 def user_preferences(request: HttpRequest, user_id: int) -> HttpResponse:
     user = User.objects.get(id=user_id)
@@ -27,47 +28,3 @@ def user_preferences(request: HttpRequest, user_id: int) -> HttpResponse:
                                                                   user.id})
                                                 
  
-def get_preference_formset(user: User) -> TeamPreferenceFormSet:
-    active_teams = Team.get_active_teams()
- 
-    preference_forms = []
-    
-    for team in active_teams:
-        pref = None
-        pref_form = None
-        try:
-            pref = team_preferences.get(team=team)
-        except TeamPreference.DoesNotExist:
-            pass
-
-        if pref is not None:
-            pref_form = TeamPreferenceForm(team_name=team.name, instance=pref,
-                                           initial={'is_preference': True})
-        else:
-            pref_form = TeamPreferenceForm(team_name=team.name)
-
-        preference_forms.append(pref_form)
-
-    return preference_forms
-
-def get_preference_forms(team_preferences: List[TeamPreference],
-                         active_teams: List[Team]) -> List[TeamPreferenceForm]:
-    preference_forms = []
-    
-    for team in active_teams:
-        pref = None
-        pref_form = None
-        try:
-            pref = team_preferences.get(team=team)
-        except TeamPreference.DoesNotExist:
-            pass
-
-        if pref is not None:
-            pref_form = TeamPreferenceForm(team_name=team.name, instance=pref,
-                                           initial={'is_preference': True})
-        else:
-            pref_form = TeamPreferenceForm(team_name=team.name)
-
-        preference_forms.append(pref_form)
-
-    return preference_forms

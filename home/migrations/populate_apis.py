@@ -2,7 +2,7 @@
 
 import sys
 from django.db import migrations
-from home.constants import api_identifiers_dict
+
 
 def load_apis(apps, schema_editor):
     Api = apps.get_model('home', 'Api')

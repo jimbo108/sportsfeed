@@ -2,10 +2,7 @@
 
 import sys
 from django.db import migrations
-from home.constants import (
-    get_fantasy_epl_api_id,
-    get_football_data_dot_org_api_id
-)
+
 
 def load_team_mappings(apps, schema_editor):
     TeamMapping = apps.get_model('home', 'TeamMapping')

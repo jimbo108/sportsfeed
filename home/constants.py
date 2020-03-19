@@ -1,15 +1,11 @@
-FOOTBALL_DATA_DOT_ORG_API_ID_KEY = "football-data.org"
-FANTASY_EPL_API_ID_KEY = "fantasy_epl"
+FOOTBALL_DATA_DOT_ORG_API_ID = 0
+FANTASY_EPL_API_ID = 1
 
-api_identifiers_dict = {
-    FOOTBALL_DATA_DOT_ORG_API_ID_KEY: 0,
-    FANTASY_EPL_API_ID_KEY: 1,
-}
+FOOTBALL_DATA_DOT_ORG_GET_MATCHES_REQ_TYPE = 0
+FOOTBALL_DATA_DOT_ORG_PREMIER_LEAGUE_COMP_ID = 2021
 
+REQUEST_LIMIT_TYPE_STAGGERED = 0
+REQUEST_LIMIT_TYPE_PER_MINUTE = 1 
 
-def get_football_data_dot_org_api_id():
-    return api_identifiers_dict[FOOTBALL_DATA_DOT_ORG_API_ID_KEY]
+PREMIER_LEAGUE_MATCH_URL = "https://api.football-data.org/v2/competitions/2021/matches"
 
-
-def get_fantasy_epl_api_id():
-    return api_identifiers_dict[FANTASY_EPL_API_ID_KEY]

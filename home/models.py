@@ -1,6 +1,10 @@
+from datetime import datetime, timedelta
+from requests import Response
 from django.db import models
+from django.db.models import Max, Count
 from .enums import ExternalIdentifierType
 from typing import Union
+from . import constants
 
 
 class Team(models.Model):
@@ -12,22 +16,71 @@ class Team(models.Model):
         return Team.objects.filter(is_active=True)
 
 
+class RequestLimitType(models.Model):
+    description = models.CharField(max_length=200)
+
+
 class Api(models.Model):
     name = models.CharField(max_length=100)
+    request_limit_type = models.ForeignKey(to=RequestLimitType, on_delete=models.SET_NULL, null=True)
+    requests_per_minute = models.IntegerField(null=True)
+    request_interval_ms = models.IntegerField(null=True)
+
+    def is_in_cooldown(self) -> bool:
+        if self.request_limit_type.id == constants.REQUEST_LIMIT_TYPE_STAGGERED:
+            last_request_time = RequestAudit.objects.filter(api=self).aggregate(Max('request_time'))
+            if (last_request_time - datetime.now()) < timedelta(seconds=(self.request_interval_seconds())):
+                return True
+            else:
+                return False
+        elif self.request_limit_type.id == constants.REQUEST_LIMIT_TYPE_PER_MINUTE:
+            one_minute_ago = datetime.now() - timedelta(minutes=1)
+            requests_last_minute = RequestAudit.objects.filter(request_time__gte=one_minute_ago).aggregate(Count('id'))
+            if requests_last_minute >= self.requests_per_minute:
+                return True
+            else:
+                return False
+
+    def request_interval_seconds(self) -> int:
+        return self.request_interval_ms / 1000
 
 
-class TeamMapping(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.deletion.CASCADE)
+class Fixture(models.Model):
+    home_team = models.ForeignKey(to=Team, on_delete=models.CASCADE, related_name="fixture_home_team")
+    away_team = models.ForeignKey(to=Team, on_delete=models.CASCADE, related_name="fixture_away_team")
+    home_score = models.IntegerField()
+    away_score = models.IntegerField()
+    kickoff_time_utc = models.DateTimeField()
+    is_ongoing = models.BooleanField()
+
+
+class RequestType(models.Model):
+    api = models.ForeignKey(to=Api, on_delete=models.CASCADE)
+    base_url = models.CharField(max_length=100)
+    description = models.CharField(max_length=200)
+    current_version_iter = models.IntegerField()
+
+class RequestAudit(models.Model):
+    api = models.ForeignKey(to=Api, on_delete=models.CASCADE)
+    url = models.CharField(max_length=100)
+    request_type = models.ForeignKey(to=RequestType, on_delete=models.CASCADE)
+    request_time = models.DateTimeField()
+    hashed_response = models.CharField(max_length=100, null=True)
+    response_code = models.IntegerField()
+    successful = models.BooleanField()
+
+class MappingModel(models.Model):
+    value = None
     api = models.ForeignKey(Api, on_delete=models.deletion.CASCADE)
     numeric_external_identifier = models.IntegerField(default=None, null=True)
     string_external_identifier = models.CharField(max_length=100, default=None,
                                                   null=True)
 
     @classmethod
-    def get_team_from_external_id(self, external_identifier_type:
+    def get_model_from_external_id(cls, external_identifier_type:
                                   ExternalIdentifierType, external_identifier:
                                   Union[int, str], api_id: int):
-        team_mapping = None
+        mapping = None
 
         try:
             api = Api.objects.get(id=api_id)
@@ -36,23 +89,26 @@ class TeamMapping(models.Model):
 
         try:
             if external_identifier_type == ExternalIdentifierType.NUMERIC:
-                team_mapping = self.objects.get(api=api,
+                mapping = cls.objects.get(api=api,
                                                 numeric_external_identifier=external_identifier)
             elif external_identifier_type == ExternalIdentifierType.STRING:
-                team_mapping = self.objects.get(api=api,
+                mapping = cls.objects.get(api=api,
                                                 string_external_identifier=external_identifier)
             else:
                 raise ValueError("Invalid ExternalIdentifierType enum") 
-        except self.DoesNotExist:
+        except cls.DoesNotExist:
             return None
-        except self.MultipleObjectsReturned as e:
+        except cls.MultipleObjectsReturned as e:
             raise e
-        if not team_mapping:
+        if not mapping:
             return None
 
-        return team_mapping.team
-             
-      
+        return mapping.value
 
-   
 
+class TeamMapping(MappingModel):
+    value = models.ForeignKey(Team, on_delete=models.deletion.CASCADE)
+
+
+class FixtureMapping(MappingModel):
+    value = models.ForeignKey(Fixture, on_delete=models.deletion.CASCADE)

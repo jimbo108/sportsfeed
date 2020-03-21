@@ -10,6 +10,11 @@ class TeamPreference(models.Model):
     is_active = models.BooleanField(default=True) 
 
     @classmethod
+    def get_user_preferred_teams(self, user: User):
+        preferred_prefs = self.objects.filter(user=user, is_active=True, is_preference=True)
+        teams = [pref.team for pref in preferred_prefs]
+
+    @classmethod
     def get_user_team_preferences(self, user: User):
         # Calling reset_user_teams on every get is not very efficient, but no
         # reason to change it at the moment.  Potential future enhancement to

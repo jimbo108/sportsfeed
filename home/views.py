@@ -7,7 +7,13 @@ from requests import get, Response
 from preferences.models import TeamPreference
 from .models import Api, RequestAudit, FixtureMapping, ExternalIdentifierType, Fixture, Team, TeamMapping
 from . import constants
+try:
+    from local_settings import FOOTBALL_DATA_DOT_ORG_API_KEY
+except ImportError as e:
+    # No local_settings, can't access external API
+    raise e
 # Create your views here.
+
 
 @csrf_exempt
 def home(request):
@@ -16,18 +22,22 @@ def home(request):
     user = request.user
 
     # Pull preferences
-    team_preferences = TeamPreference.get_user_team_preferences(user)
+    preferred_teams = TeamPreference.get_user_preferred_teams(user)
+    if preferred_teams is None:
+        preferred_teams = Team.objects.filter(is_active=True)
 
     # Check last successful request for matches
     api = Api.objects.get(id=constants.FOOTBALL_DATA_DOT_ORG_API_ID)
 
     if not api.is_in_cooldown():
         request_time = datetime.utcnow()
-        response = get(constants.PREMIER_LEAGUE_MATCH_URL)
+        headers = {'X-Auth-Token': FOOTBALL_DATA_DOT_ORG_API_KEY}
+        response = get(constants.PREMIER_LEAGUE_MATCH_URL, headers=headers)
         handle_match_response(response, request_time)
 
     # TODO: Handle seasons
-    for team in team_preferences:
+
+    for team in preferred_teams:
         fixtures_for_team = Fixture.objects.filter(Q(home_team=team) | Q(away_team=team))
         fixtures = fixtures.union(set(fixtures_for_team))
 
@@ -38,24 +48,46 @@ def home(request):
     return render(request, 'home.html')
 
 
-def audit_matches_request(response: Response, request_time: datetime, hashed_resp: str=None) -> None:
+def audit_matches_request(response: Response, request_time: datetime, hashed_resp: str = None) -> int:
     if response is None or response.status_code is None:
         return
 
+    request_audit = None
+
     if response.status_code < 200 or response.status_code > 299:
-        request_audit = RequestAudit(api__id=constants.FOOTBALL_DATA_DOT_ORG_API_ID, 
-                                    url=constants.PREMIER_LEAGUE_MATCH_URL,
-                                    request_type__id=constants.FOOTBALL_DATA_DOT_ORG_GET_MATCHES_REQ_TYPE, 
-                                    request_time=request_time, hashed_response=None, response_code=response.status_code,
-                                    successful=False)
-    else:
-        request_audit = RequestAudit(api__id=constants.FOOTBALL_DATA_DOT_ORG_API_ID, 
+        request_audit = RequestAudit(api_id=constants.FOOTBALL_DATA_DOT_ORG_API_ID,
                                      url=constants.PREMIER_LEAGUE_MATCH_URL,
-                                     request_type__id=constants.FOOTBALL_DATA_DOT_ORG_GET_MATCHES_REQ_TYPE, 
-                                     request_time=request_time, hashed_response=hashed_resp, 
+                                     request_type_id=constants.FOOTBALL_DATA_DOT_ORG_GET_MATCHES_REQ_TYPE,
+                                     request_time=request_time, hashed_response=None,
                                      response_code=response.status_code,
-                                     successful=True)
-    return
+                                     successful=False)
+    else:
+
+        # only setting 'successful' to False for now, until we're finished processing fixtures
+        request_audit = RequestAudit(api_id=constants.FOOTBALL_DATA_DOT_ORG_API_ID,
+                                     url=constants.PREMIER_LEAGUE_MATCH_URL,
+                                     request_type_id=constants.FOOTBALL_DATA_DOT_ORG_GET_MATCHES_REQ_TYPE,
+                                     request_time=request_time, hashed_response=hashed_resp,
+                                     response_code=response.status_code,
+                                     successful=False)
+
+    request_audit.save()
+    return request_audit.id
+
+
+def set_req_audit_successful(request_audit_id: id) -> None:
+    request_audit = None
+    try:
+        request_audit = RequestAudit.objects.get(id=request_audit_id)
+    except RequestAudit.DoesNotExist:
+        # More logging here
+        pass
+    except RequestAudit.MultipleObjectsReturned as e:
+        raise e
+
+    if request_audit is not None:
+        request_audit.successful = True
+        request_audit.save()
 
 
 def validate_matches_response(json: dict) -> bool:
@@ -65,15 +97,17 @@ def validate_matches_response(json: dict) -> bool:
         return False
     if not json['competition']['id'] == constants.FOOTBALL_DATA_DOT_ORG_PREMIER_LEAGUE_COMP_ID:
         return False
-    
+
     if 'matches' not in json:
         return False
+
+    return True
 
 
 def identical_request_found(response_hash: str) -> bool:
     identical_requests = RequestAudit.objects.filter(
-                            request_type__id=constants.FOOTBALL_DATA_DOT_ORG_GET_MATCHES_REQ_TYPE,
-                            hashed_response=response_hash)
+                            request_type_id=constants.FOOTBALL_DATA_DOT_ORG_GET_MATCHES_REQ_TYPE,
+                            hashed_response=response_hash, successful=True)
     if len(identical_requests) > 0:
         return True
     else:
@@ -92,7 +126,7 @@ def status_is_ongoing(status: str) -> bool:
         return True
 
 
-def create_fixture(match_json: dict, existing_fixture: Fixture=None) -> Fixture:
+def create_fixture(match_json: dict, existing_fixture: Fixture = None) -> Fixture:
     status = None
     utc_date = None
     home_team_ext_id = None
@@ -120,8 +154,11 @@ def create_fixture(match_json: dict, existing_fixture: Fixture=None) -> Fixture:
     if any(var is None for var in [status, utc_date, home_team_ext_id, away_team_ext_id, home_score, away_score]):
         return False
 
-    home_team_internal = map_team_to_internal(home_team_ext_id)
-    away_team_internal = map_team_to_internal(away_team_ext_id)
+    breakpoint()
+    home_team_internal = TeamMapping.get_model_from_external_id(ExternalIdentifierType.NUMERIC, home_team_ext_id,
+                                                                constants.FOOTBALL_DATA_DOT_ORG_API_ID)
+    away_team_internal = TeamMapping.get_model_from_external_id(ExternalIdentifierType.NUMERIC, away_team_ext_id,
+                                                                constants.FOOTBALL_DATA_DOT_ORG_API_ID)
     if home_team_internal is None or away_team_internal is None:
         return False
 
@@ -129,7 +166,7 @@ def create_fixture(match_json: dict, existing_fixture: Fixture=None) -> Fixture:
     if fixture_dt is None:
         return False
 
-    is_ongoing = status_is_ongoing(status)     
+    is_ongoing = status_is_ongoing(status)
 
     if existing_fixture is not None:
         existing_fixture.home_team = home_team_internal
@@ -154,7 +191,7 @@ def handle_match(match_json: dict) -> bool:
     existing_fixture = FixtureMapping.get_model_from_external_id(ExternalIdentifierType.NUMERIC, match_json['id'],
                                                                  constants.FOOTBALL_DATA_DOT_ORG_API_ID)
 
-    if existing_fixture is None or not existing_fixture.is_ongoing:
+    if existing_fixture is not None and not existing_fixture.is_ongoing:
         return True
 
     create_fixture(match_json)
@@ -164,16 +201,21 @@ def handle_match_response(response: Response, request_time: datetime) -> None:
     if response.status_code is None or response.status_code < 200 or response.status_code > 299:
         audit_matches_request(response, request_time, None)
         return False
-    response_md5_hash = md5(str(response.content))
-    audit_matches_request(response, request_time, response_md5_hash)
+    response_md5_hash = md5(str(response.content).encode('utf-8')).hexdigest()
+
+    request_audit_id = audit_matches_request(response, request_time, response_md5_hash)
+    success = True
 
     if identical_request_found(response_md5_hash):
         return True
-    
+
     json = response.json()
 
     if not validate_matches_response(json):
         return False
 
     for match in json['matches']:
-        handle_match()        
+        success = success and handle_match(match)
+
+    if success:
+        set_req_audit_successful(request_audit_id)

@@ -28,14 +28,18 @@ class Api(models.Model):
 
     def is_in_cooldown(self) -> bool:
         if self.request_limit_type.id == constants.REQUEST_LIMIT_TYPE_STAGGERED:
-            last_request_time = RequestAudit.objects.filter(api=self).aggregate(Max('request_time'))
-            if (last_request_time - datetime.now()) < timedelta(seconds=(self.request_interval_seconds())):
+            last_request_time_dict = RequestAudit.objects.filter(api=self).aggregate(Max('request_time'))
+            last_request_time = last_request_time_dict['request_time__max'] 
+            if last_request_time is None:
+                return False
+            elif (last_request_time - datetime.now()) < timedelta(seconds=(self.request_interval_seconds())):
                 return True
             else:
                 return False
         elif self.request_limit_type.id == constants.REQUEST_LIMIT_TYPE_PER_MINUTE:
             one_minute_ago = datetime.now() - timedelta(minutes=1)
-            requests_last_minute = RequestAudit.objects.filter(request_time__gte=one_minute_ago).aggregate(Count('id'))
+            requests_last_minute_dict = RequestAudit.objects.filter(request_time__gte=one_minute_ago).aggregate(Count('id'))
+            requests_last_minute = requests_last_minute_dict['id__count'] 
             if requests_last_minute >= self.requests_per_minute:
                 return True
             else:
@@ -60,6 +64,7 @@ class RequestType(models.Model):
     description = models.CharField(max_length=200)
     current_version_iter = models.IntegerField()
 
+
 class RequestAudit(models.Model):
     api = models.ForeignKey(to=Api, on_delete=models.CASCADE)
     url = models.CharField(max_length=100)
@@ -69,6 +74,7 @@ class RequestAudit(models.Model):
     response_code = models.IntegerField()
     successful = models.BooleanField()
 
+
 class MappingModel(models.Model):
     value = None
     api = models.ForeignKey(Api, on_delete=models.deletion.CASCADE)
@@ -76,17 +82,20 @@ class MappingModel(models.Model):
     string_external_identifier = models.CharField(max_length=100, default=None,
                                                   null=True)
 
+    class Meta:
+        abstract = True
+
     @classmethod
     def get_model_from_external_id(cls, external_identifier_type:
-                                  ExternalIdentifierType, external_identifier:
-                                  Union[int, str], api_id: int):
+                                   ExternalIdentifierType, external_identifier:
+                                   Union[int, str], api_id: int):
         mapping = None
 
         try:
             api = Api.objects.get(id=api_id)
         except Api.DoesNotExist:
             return None
-
+        breakpoint()
         try:
             if external_identifier_type == ExternalIdentifierType.NUMERIC:
                 mapping = cls.objects.get(api=api,

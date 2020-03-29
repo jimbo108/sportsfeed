@@ -1,5 +1,5 @@
+import re
 from datetime import datetime, timedelta
-from requests import Response
 from django.db import models
 from django.db.models import Max, Count
 from .enums import ExternalIdentifierType
@@ -38,6 +38,7 @@ class Api(models.Model):
                 return False
         elif self.request_limit_type.id == constants.REQUEST_LIMIT_TYPE_PER_MINUTE:
             one_minute_ago = datetime.now() - timedelta(minutes=1)
+            # TODO: Finish this logic
             requests_last_minute_dict = RequestAudit.objects.filter(request_time__gte=one_minute_ago).aggregate(Count('id'))
             requests_last_minute = requests_last_minute_dict['id__count'] 
             if requests_last_minute >= self.requests_per_minute:
@@ -63,6 +64,14 @@ class RequestType(models.Model):
     base_url = models.CharField(max_length=100)
     description = models.CharField(max_length=200)
     current_version_iter = models.IntegerField()
+
+    def get_url(self, *args) -> str:
+        url = self.base_url
+        if url is None:
+            return None
+        for arg in args:
+            url = re.sub("[\[].*?[\]]", arg, url, 1)
+        return url
 
 
 class RequestAudit(models.Model):
@@ -95,16 +104,15 @@ class MappingModel(models.Model):
             api = Api.objects.get(id=api_id)
         except Api.DoesNotExist:
             return None
-        breakpoint()
         try:
             if external_identifier_type == ExternalIdentifierType.NUMERIC:
                 mapping = cls.objects.get(api=api,
-                                                numeric_external_identifier=external_identifier)
+                                          numeric_external_identifier=external_identifier)
             elif external_identifier_type == ExternalIdentifierType.STRING:
                 mapping = cls.objects.get(api=api,
-                                                string_external_identifier=external_identifier)
+                                          string_external_identifier=external_identifier)
             else:
-                raise ValueError("Invalid ExternalIdentifierType enum") 
+                raise ValueError("Invalid ExternalIdentifierType enum")
         except cls.DoesNotExist:
             return None
         except cls.MultipleObjectsReturned as e:

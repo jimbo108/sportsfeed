@@ -206,6 +206,7 @@ class FDDOApiClient(ApiGetClient):
                                              numeric_external_identifier=match_json['id'])
             fixture_mapping.save()
         return True
+
     def _status_is_ongoing(self, status: str) -> bool:
         return not (status == "FINISHED")
 

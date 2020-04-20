@@ -1,0 +1,54 @@
+.invalid-or-missing {
+    background-color: pink;
+}
+
+.text-center {
+	text-align: center;
+}
+
+.text-center-small {
+	font-size: 70%;
+	text-align: center;
+}
+
+.text-right {
+	text-align: right;
+}
+
+.jumbo-font {
+    font-size: 400%;
+}
+
+.div-border {
+	border-style: solid;
+}
+
+.score-large-center {
+	font-size: 200%;
+	text-align: center;
+}
+
+.jumbotron {
+    background-color: whitesmoke;
+    border-style: solid;
+    border-color: #b19cd9;
+    /*border-block-width: 30px;*/
+}
+
+.grey-background {
+    background-color: #e3e3e3;
+}
+
+.purple-button {
+    background-color: #b19cd9;
+}
+
+.form-div {
+    background-color: whitesmoke;
+    border-style: solid;
+    border-color: #b19cd9;
+}
+
+.form-error {
+    background-color: pink;
+}

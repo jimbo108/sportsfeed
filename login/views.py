@@ -6,7 +6,7 @@ from .forms import NewUserForm
 
 def login_user(request):
     form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+    return render(request, 'login/login.html', {'form': form})
 
 
 def login_submit(request):
@@ -25,7 +25,7 @@ def login_submit(request):
 
 def new_user(request):
     new_user_form = NewUserForm()
-    return render(request, 'new_user.html', {'form': new_user_form})
+    return render(request, 'login/new_user.html', {'form': new_user_form})
 
 
 def new_user_submit(request):
@@ -46,11 +46,11 @@ def new_user_submit(request):
 
 def login_submission_failure(request, context):
     context['failure'] = True
-    return render(request, 'login.html', context)
+    return render(request, 'login/login.html', context)
 
 
 def new_user_submission_failure(request, context=None):
-    return render(request, 'new_user.html', context)
+    return render(request, 'login/new_user.html', context)
 
 
 def register_preferences(request):

@@ -22,9 +22,9 @@ def user_preferences(request: HttpRequest, user_id: int) -> HttpResponse:
         TeamPreference.reset_user_teams(user, active_teams)
         formset = TeamPreferenceFormSet(queryset=TeamPreference.objects.filter(user=user,
                                                                                is_active=True))
-        return render(request, 'user_preferences.html', context={'formset':
-                                                                 formset,
-                                                                 'user_id':
-                                                                  user.id})
+        return render(request, 'preferences/user_preferences.html', context={'formset':
+                                                                              formset,
+                                                                             'user_id':
+                                                                              user.id})
                                                 
  

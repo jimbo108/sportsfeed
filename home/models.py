@@ -30,9 +30,10 @@ class Api(models.Model):
         if self.request_limit_type.id == constants.REQUEST_LIMIT_TYPE_STAGGERED:
             last_request_time_dict = RequestAudit.objects.filter(api=self).aggregate(Max('request_time'))
             last_request_time = last_request_time_dict['request_time__max'] 
+            breakpoint()
             if last_request_time is None:
                 return False
-            elif (last_request_time - datetime.now()) < timedelta(seconds=(self.request_interval_seconds())):
+            elif (last_request_time.replace(tzinfo=None) - datetime.utcnow()) < timedelta(seconds=(self.request_interval_seconds())):
                 return True
             else:
                 return False

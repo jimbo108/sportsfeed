@@ -29,7 +29,7 @@ def home(request):
     for fixture in fixtures:
         print(fixture.__dict__)
 
-    return render(request, 'home.html')
+    return render(request, 'home/home.html', context={'fixtures': fixtures})
 
 
 def refresh_fixtures() -> bool:

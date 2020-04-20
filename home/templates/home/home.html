@@ -1,0 +1,34 @@
+{% extends "home/base.html" %}
+{% block content %}
+
+<div class="container">
+    <div class="jumbotron">
+        <h1 class="text-center jumbo-font">Fixtures</h1>
+    </div>
+    {% for fixture in fixtures %}
+        <div class="row">
+            <div class="col-md-4 offset-1 div-border rounded-top rounded-bottom rounded-left">
+                <p>{{ fixture.home_team.name }}</p>
+                <p class="score-large-center">{{ fixture.home_score }}</p>
+                <p class="text-right">Home</p>
+            </div> <div class="col-md-1 div-border">
+                <p class="text-center-small">{{ fixture.kickoff_time_utc }}</p>
+                <p class="text-center">
+                {% if fixture.is_ongoing %}
+                Live
+                {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 div-border rounded-top rounded-bottom rounded-right">
+                <p class="text-right">{{ fixture.away_team.name }}</p>
+                <p class="score-large-center">{{ fixture.away_score }} </p>
+                <p>Away</p>
+            </div>
+        </div>
+        <br/>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+

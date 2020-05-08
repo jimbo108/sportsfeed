@@ -48,7 +48,7 @@ def load_team_mappings(apps, schema_editor):
     fpl_burnley_map.save()
 
     fbdata_burnley_map = TeamMapping(id=10, value_id=4, api_id=1,
-                                     numeric_external_identifier=2072)
+                                     numeric_external_identifier=328)
     fbdata_burnley_map.save()
 
     # Chelsea

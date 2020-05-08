@@ -41,6 +41,19 @@ RequestAudit:
 
 Changed Tables/Models:
 Api:
-    RequestsPerMinute
-    RequestInterval
+    RequestLimitType: RequestLimitType
+    RequestsPerMinute: int
+    RequestIntervalMs: int
 
+RequestType:
+    api: Api 
+    base_url: str 
+    description: str
+
+RequestLimitType:
+    description: str
+
+Failure behavior: Only skip requests if all fixtures were created successfully for the exact
+same request.  Treat full and partial failures the same in the message that's displayed to the user.
+Full failures with no Fixture data to fall back on should be very uncommon.  Log errors (other design), any error
+makes the whole request unsuccessful.  Errors should only apply to ongoing fixtures that need to be updated.

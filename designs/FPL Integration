@@ -1,0 +1,17 @@
+I want to be able to filter upcoming fixtures by fixtures that I have players in
+
+Bill creates a new account on the site.  He first chooses team preferences along with an option to log in to FPL.
+He chooses to log-in via FPL and add fixtures with players he has on his team.  A pop-up window appears prompting for
+FPL username and password (and team ID?), along with a checkbox that, when checked, will change the preference to keep
+prompting for an FPL password.  He logs in successfully, and the home-screen is generated with all the upcoming fixtures
+for his preference teams as well as teams with players that he has on his FPL roster.  Only the upcoming gameweek is
+displayed initially, with a button at the bottom to load all past matches, and a button near the top to load future
+matches.
+
+Designs to follow:
+(1) Add preferences option to home screen/ add top/bottom bar to home screen
+(2) Add FPL pop-up log in
+(3) Add FPL to preferences
+(4) Add backend logic for filtering fixtures by FPL player inclusion
+(5) Add filtering for only this gameweek
+(6) Add buttons for loading more gameweeks

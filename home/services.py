@@ -4,7 +4,12 @@ from datetime import datetime
 from typing import Dict
 from requests import get, Response
 from django.db.models import Q
-from .models import RequestType, RequestAudit, FixtureMapping, ExternalIdentifierType, Fixture, TeamMapping
+from .enums import FixtureStatusIds
+from .models import (
+    RequestType, RequestAudit, FixtureMapping,
+    ExternalIdentifierType, Fixture, TeamMapping, 
+    FixtureStatus,FixtureStatusMapping
+                    )
 from .constants import FDDO_PREMIER_LEAGUE_ID, FOOTBALL_DATA_DOT_ORG_GET_MATCHES_REQ_TYPE
 try:
     from sportsfeed.local_settings import FOOTBALL_DATA_DOT_ORG_API_KEY
@@ -48,8 +53,8 @@ class ApiGetClient(ABC):
         if not self.response.ok or len(self.response.content) == 0:
             return False
         self.hashed_response = md5(str(self.response.content).encode('utf-8')).hexdigest()
-
         request_audit_id = self._audit_request()
+
         if self._identical_request_found(request_audit_id):
             return True
 
@@ -67,7 +72,8 @@ class ApiGetClient(ABC):
     def _identical_request_found(self, request_audit_id: int) -> bool:
         identical_requests = RequestAudit.objects.filter(Q(request_type_id=self.request_type.id),
                                                          Q(hashed_response=self.hashed_response),
-                                                         ~Q(id=request_audit_id))
+                                                         ~Q(id=request_audit_id),
+                                                         Q(successful=True))
         if len(identical_requests) > 0:
             return True
         else:
@@ -141,12 +147,20 @@ class FDDOApiClient(ApiGetClient):
         # TODO: log validation errors
         if 'id' not in match_json:
             return False
+
         existing_fixture = FixtureMapping.get_model_from_external_id(ExternalIdentifierType.NUMERIC, match_json['id'],
                                                                      self.request_type.api.id)
 
-        if existing_fixture is not None and not existing_fixture.is_ongoing:
+        if existing_fixture is not None and not self._fixture_status_is_final(existing_fixture.status_id):
             return True
         return self._create_fixture(match_json, existing_fixture)
+
+    def _fixture_status_is_final(self, status_id: int) -> bool:
+        if status_id in (FixtureStatusIds.FINISHED, FixtureStatusIds.AWARDED,
+                         FixtureStatusIds.CANCELED):
+            return True
+        else:
+            return False
 
     def _create_fixture(self, match_json: dict, existing_fixture: Fixture = None) -> Fixture:
         status = None
@@ -172,8 +186,9 @@ class FDDOApiClient(ApiGetClient):
                     home_score = match_json['score']['fullTime']['homeTeam']
                 if 'awayTeam' in match_json['score']['fullTime']:
                     away_score = match_json['score']['fullTime']['awayTeam']
-
-        if any(var is None for var in [status, utc_date, home_team_ext_id, away_team_ext_id, home_score, away_score]):
+        
+        if any(var is None for var in [status, utc_date, home_team_ext_id,
+                                       away_team_ext_id]):
             return False
 
         home_team_internal = TeamMapping.get_model_from_external_id(ExternalIdentifierType.NUMERIC, home_team_ext_id,
@@ -181,13 +196,18 @@ class FDDOApiClient(ApiGetClient):
         away_team_internal = TeamMapping.get_model_from_external_id(ExternalIdentifierType.NUMERIC, away_team_ext_id,
                                                                     self.request_type.api.id) 
         if home_team_internal is None or away_team_internal is None:
+            breakpoint()
             return False
 
         fixture_dt = datetime.strptime(utc_date, "%Y-%m-%dT%H:%M:%SZ")
         if fixture_dt is None:
+            breakpoint()
             return False
-
-        is_ongoing = self._status_is_ongoing(status)
+       
+        internal_status = self._get_status(status)
+        if internal_status is None:
+            breakpoint()
+            return False 
 
         if existing_fixture is not None:
             existing_fixture.home_team = home_team_internal
@@ -199,13 +219,21 @@ class FDDOApiClient(ApiGetClient):
             existing_fixture.save()
         else:
             fixture = Fixture(home_team=home_team_internal, away_team=away_team_internal, home_score=home_score,
-                              away_score=away_score, kickoff_time_utc=fixture_dt, is_ongoing=is_ongoing)
+                              away_score=away_score,
+                              kickoff_time_utc=fixture_dt,
+                              status=internal_status)
             fixture.save()
             fixture_mapping = FixtureMapping(value_id=fixture.id,
                                              api_id=self.request_type.api.id,
                                              numeric_external_identifier=match_json['id'])
             fixture_mapping.save()
         return True
+
+    def _get_status(self, status: str) -> FixtureStatus:
+        fixture_status = FixtureStatusMapping.get_model_from_external_id(ExternalIdentifierType.STRING,
+                                                                         status,
+                                                                         self.request_type.api.id)
+        return fixture_status
 
     def _status_is_ongoing(self, status: str) -> bool:
         return not (status == "FINISHED")
@@ -225,3 +253,4 @@ class FDDOApiClient(ApiGetClient):
             return False
     
         return True
+

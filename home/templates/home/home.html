@@ -9,7 +9,11 @@
         <div class="row">
             <div class="col-md-4 offset-1 div-border rounded-top rounded-bottom rounded-left">
                 <p>{{ fixture.home_team.name }}</p>
+                {% if fixture.home_score is not None %}
                 <p class="score-large-center">{{ fixture.home_score }}</p>
+                {% else %}
+                <p class="score-large-center">-</p>
+                {% endif %}
                 <p class="text-right">Home</p>
             </div> <div class="col-md-1 div-border">
                 <p class="text-center-small">{{ fixture.kickoff_time_utc }}</p>
@@ -21,7 +25,11 @@
             </div>
             <div class="col-md-4 div-border rounded-top rounded-bottom rounded-right">
                 <p class="text-right">{{ fixture.away_team.name }}</p>
+                {% if fixture.away_score is not None %}
                 <p class="score-large-center">{{ fixture.away_score }} </p>
+                {% else %}
+                <p class="score-large-center">-</p>
+                {% endif %}
                 <p>Away</p>
             </div>
         </div>

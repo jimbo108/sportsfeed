@@ -7,3 +7,13 @@
 01/05/20 2:02AM - Finished initializing all data, now working on preferences
           view and model -- base case functional and unit coverage is complete,
           now working on the functionality.
+
+03/10/20 1:09AM - Finisehd models and design for home.  Need to create a client class
+for getting the match resources.
+
+03/20/20 12:01AM - Finished code (untested) for the home view.  Working on migrations for
+RequestLimitType and RequestType.  I've also discovered that I need to create a new  migration
+for TeamMapping, since I've changed 'team' to 'value' with the new MappingModel parent class,
+and it also appears that I've used *_id rather than *__id, and django will just do whatever you
+tell it in custom migrations.  I'm not sure how the TeamMapping custom migrations interacts with
+the original migration that created the tables. 

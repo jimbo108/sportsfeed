@@ -28,7 +28,9 @@ def home(request):
     # DEBUG:
     for fixture in fixtures:
         print(fixture.__dict__)
-
+    
+    fixtures = sorted(fixtures, reverse=True,
+                                key=lambda x: x.kickoff_time_utc.timestamp())
     return render(request, 'home/home.html', context={'fixtures': fixtures})
 
 

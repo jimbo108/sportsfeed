@@ -8,11 +8,11 @@ from . import constants
 
 
 class Team(models.Model):
-    name = models.CharField(max_length=100) 
+    name = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
 
     @classmethod
-    def get_active_teams(self):
+    def get_active_teams(cls):
         return Team.objects.filter(is_active=True)
 
 
@@ -29,35 +29,40 @@ class Api(models.Model):
     def is_in_cooldown(self) -> bool:
         if self.request_limit_type.id == constants.REQUEST_LIMIT_TYPE_STAGGERED:
             last_request_time_dict = RequestAudit.objects.filter(api=self).aggregate(Max('request_time'))
-            last_request_time = last_request_time_dict['request_time__max'] 
-            breakpoint()
+            last_request_time = last_request_time_dict['request_time__max']
             if last_request_time is None:
                 return False
-            elif (last_request_time.replace(tzinfo=None) - datetime.utcnow()) < timedelta(seconds=(self.request_interval_seconds())):
+            elif (datetime.utcnow() - last_request_time.replace(tzinfo=None)) < timedelta(
+                    seconds=self.request_interval_seconds):
                 return True
             else:
                 return False
         elif self.request_limit_type.id == constants.REQUEST_LIMIT_TYPE_PER_MINUTE:
             one_minute_ago = datetime.now() - timedelta(minutes=1)
-            # TODO: Finish this logic
-            requests_last_minute_dict = RequestAudit.objects.filter(request_time__gte=one_minute_ago).aggregate(Count('id'))
-            requests_last_minute = requests_last_minute_dict['id__count'] 
+            requests_last_minute_dict = RequestAudit.objects.filter(request_time__gte=one_minute_ago).aggregate(
+                Count('id'))
+            requests_last_minute = requests_last_minute_dict['id__count']
             if requests_last_minute >= self.requests_per_minute:
                 return True
             else:
                 return False
 
-    def request_interval_seconds(self) -> int:
+    @property
+    def request_interval_seconds(self) -> float:
         return self.request_interval_ms / 1000
+
+
+class FixtureStatus(models.Model):
+    description = models.CharField(max_length=30)
 
 
 class Fixture(models.Model):
     home_team = models.ForeignKey(to=Team, on_delete=models.CASCADE, related_name="fixture_home_team")
     away_team = models.ForeignKey(to=Team, on_delete=models.CASCADE, related_name="fixture_away_team")
-    home_score = models.IntegerField()
-    away_score = models.IntegerField()
+    home_score = models.IntegerField(null=True, default=None)
+    away_score = models.IntegerField(null=True, default=None)
     kickoff_time_utc = models.DateTimeField()
-    is_ongoing = models.BooleanField()
+    status = models.ForeignKey(to=FixtureStatus, on_delete=models.CASCADE)
 
 
 class RequestType(models.Model):
@@ -66,12 +71,12 @@ class RequestType(models.Model):
     description = models.CharField(max_length=200)
     current_version_iter = models.IntegerField()
 
-    def get_url(self, *args) -> str:
+    def get_url(self, *args) -> Union[str, None]:
         url = self.base_url
         if url is None:
             return None
         for arg in args:
-            url = re.sub("[\[].*?[\]]", arg, url, 1)
+            url = re.sub('[\[].*?[\]]', arg, url, 1)
         return url
 
 
@@ -96,11 +101,9 @@ class MappingModel(models.Model):
         abstract = True
 
     @classmethod
-    def get_model_from_external_id(cls, external_identifier_type:
-                                   ExternalIdentifierType, external_identifier:
-                                   Union[int, str], api_id: int):
-        mapping = None
-
+    def get_model_from_external_id(cls, external_identifier_type: ExternalIdentifierType,
+                                   external_identifier: Union[int, str],
+                                   api_id: int) -> Union[models.ForeignKey, None]:
         try:
             api = Api.objects.get(id=api_id)
         except Api.DoesNotExist:
@@ -122,6 +125,10 @@ class MappingModel(models.Model):
             return None
 
         return mapping.value
+
+
+class FixtureStatusMapping(MappingModel):
+    value = models.ForeignKey(FixtureStatus, on_delete=models.deletion.CASCADE)
 
 
 class TeamMapping(MappingModel):

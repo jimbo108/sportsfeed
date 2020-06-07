@@ -1,3 +1,7 @@
+"""
+
+"""
+
 from datetime import datetime
 import json
 from unittest.mock import patch
@@ -195,7 +199,7 @@ class ApiClientTest(TestCase):
         get_mock.return_value.ok = True
         get_mock.return_value.content = 'Not blank'
         get_mock.return_value.status_code = 200
-        
+
         json = self.get_json_dict()
         del json['competition']['id']
 

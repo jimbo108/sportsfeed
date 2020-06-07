@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'login',
     'home',
     'preferences',
-    'frontend',
 ]
 
 MIDDLEWARE = [
